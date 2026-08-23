@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Tab</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Week Wall: each tile = one week of the year. spent = dark, open = glowing -->
+    <div id="week-wall"></div>
+    <div id="grid-overlay"></div>
+
+    <div id="spark-field"></div>
+    <div id="cursor-glow"></div>
+    <div id="tile-tooltip" class="tile-tooltip"></div>
+
+    <main class="container">
+      <div class="eyebrow"><span>THE YEAR IS RUNNING OUT</span></div>
+
+      <div class="weeks-stat">
+        <div class="stat gone">
+          <b id="weeks-gone">0</b>
+          <small>Weeks gone</small>
+        </div>
+        <div class="divider"></div>
+        <div class="stat left">
+          <b id="weeks-left">52</b>
+          <small>Weeks left</small>
+        </div>
+      </div>
+
+      <h1 class="headline">
+        Another year ends <span class="grad">in</span>
+      </h1>
+
+      <div class="countdown">
+        <div class="card">
+          <span id="years">0</span>
+          <small>Years</small>
+        </div>
+        <div class="card">
+          <span id="months">0</span>
+          <small>Months</small>
+        </div>
+        <div class="card">
+          <span id="days">0</span>
+          <small>Days</small>
+        </div>
+        <div class="card">
+          <span id="hours">0</span>
+          <small>Hrs</small>
+        </div>
+        <div class="card">
+          <span id="minutes">0</span>
+          <small>Min</small>
+        </div>
+        <div class="card">
+          <span id="seconds">0</span>
+          <small>Sec</small>
+        </div>
+        <div class="card ms-card">
+          <span id="milliseconds">0</span>
+          <small>Ms</small>
+        </div>
+      </div>
+
+      <div class="progress-row">
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+          <div class="progress-marker" id="progress-marker"></div>
+        </div>
+        <div class="progress-label" id="progress-label">— % of the year gone</div>
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
