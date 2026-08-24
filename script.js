@@ -121,10 +121,14 @@ const TILE_COUNT = 52;
 const COLS = 13;
 const ROWS = 4;
 const QUARTER_LABELS = ["Q1", "Q2", "Q3", "Q4"];
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const now = new Date();
 const startOfYear = new Date(now.getFullYear(), 0, 1);
 const startOfNextYear = new Date(now.getFullYear() + 1, 0, 1);
+const weekYearStart = new Date(startOfYear);
+const daysSinceMonday = (weekYearStart.getDay() + 6) % 7;
+weekYearStart.setDate(weekYearStart.getDate() - daysSinceMonday);
 const totalYearMs = startOfNextYear - startOfYear;
 const elapsedYearMs = now - startOfYear;
 const yearPercent = Math.min(
@@ -132,14 +136,19 @@ const yearPercent = Math.min(
   Math.max(0, (elapsedYearMs / totalYearMs) * 100),
 );
 
-const currentWeekIndex = Math.min(
-  TILE_COUNT - 1,
-  Math.floor((elapsedYearMs / totalYearMs) * TILE_COUNT),
+const elapsedDays = Math.floor(
+  (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
+    Date.UTC(
+      weekYearStart.getFullYear(),
+      weekYearStart.getMonth(),
+      weekYearStart.getDate(),
+    )) /
+    DAY_MS,
 );
+const currentWeekIndex = Math.min(TILE_COUNT - 1, Math.floor(elapsedDays / 7));
 
-const weekStart = new Date(startOfYear);
+const weekStart = new Date(weekYearStart);
 weekStart.setDate(weekStart.getDate() + currentWeekIndex * 7);
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 function currentWeekFraction() {
   const msIntoWeek = new Date() - weekStart;
@@ -166,7 +175,7 @@ function lerpColor(hexA, hexB, t) {
 }
 
 function weekDateRange(i) {
-  const start = new Date(startOfYear);
+  const start = new Date(weekYearStart);
   start.setDate(start.getDate() + i * 7);
   const end = new Date(start);
   end.setDate(end.getDate() + 6);
