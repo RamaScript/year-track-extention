@@ -1,14 +1,72 @@
+/* ==========================================================================
+   TIME // TRACKER — NEO-BRUTALIST TELEMETRY ENGINE
+   ========================================================================== */
+
 /*
 |--------------------------------------------------------------------------
-| CHANGE THIS DATE
+| Target Date (Locked for 2027)
 |--------------------------------------------------------------------------
 */
 
 const TARGET_DATE = new Date("2027-01-01T00:00:00");
+localStorage.removeItem("brutalist_target_date");
 
 /*
 |--------------------------------------------------------------------------
-| Countdown (unchanged logic — accurate calendar year/month stepping)
+| Brutalist Theme System (Acid <-> Onyx)
+|--------------------------------------------------------------------------
+*/
+
+const THEME_KEY = "brutalist_theme";
+const themeBtn = document.getElementById("theme-btn");
+const themeBtnLabel = document.getElementById("theme-btn-label");
+
+function getStoredTheme() {
+  return localStorage.getItem(THEME_KEY) || "acid";
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem(THEME_KEY, theme);
+  if (themeBtnLabel) {
+    themeBtnLabel.textContent = `THEME: ${theme.toUpperCase()}`;
+  }
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "acid";
+  const next = current === "acid" ? "onyx" : "acid";
+  applyTheme(next);
+}
+
+if (themeBtn) {
+  themeBtn.addEventListener("click", toggleTheme);
+}
+applyTheme(getStoredTheme());
+
+/*
+|--------------------------------------------------------------------------
+| System Clock Telemetry
+|--------------------------------------------------------------------------
+*/
+
+const systemClockEl = document.getElementById("system-clock");
+
+function updateSystemClock() {
+  if (!systemClockEl) return;
+  const now = new Date();
+  const utc = now.toTimeString().split(" ")[0];
+  const offset = -now.getTimezoneOffset() / 60;
+  const sign = offset >= 0 ? "+" : "-";
+  const zoneStr = `UTC${sign}${Math.abs(offset)}`;
+  systemClockEl.textContent = `${utc} [${zoneStr}]`;
+}
+setInterval(updateSystemClock, 1000);
+updateSystemClock();
+
+/*
+|--------------------------------------------------------------------------
+| Accurate Stepped Countdown Engine
 |--------------------------------------------------------------------------
 */
 
@@ -109,9 +167,7 @@ updateCountdown();
 
 /*
 |--------------------------------------------------------------------------
-| Week Wall — 52 tiles, one per week of the calendar year.
-| Weeks already gone render dark/flat. Weeks still open glow, brightening
-| toward "today", which pulses. This is the year, made visible.
+| Week Wall — 52 Architectural Matrix Tiles
 |--------------------------------------------------------------------------
 */
 
@@ -120,15 +176,23 @@ const tooltip = document.getElementById("tile-tooltip");
 const TILE_COUNT = 52;
 const COLS = 13;
 const ROWS = 4;
-const QUARTER_LABELS = ["Q1", "Q2", "Q3", "Q4"];
+const QUARTER_LABELS = ["Q1 // JAN-MAR", "Q2 // APR-JUN", "Q3 // JUL-SEP", "Q4 // OCT-DEC"];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const now = new Date();
-const startOfYear = new Date(now.getFullYear(), 0, 1);
-const startOfNextYear = new Date(now.getFullYear() + 1, 0, 1);
+const currentYear = now.getFullYear();
+
+const yearStampEl = document.getElementById("current-year-stamp");
+if (yearStampEl) {
+  yearStampEl.textContent = `YEAR ${currentYear}`;
+}
+
+const startOfYear = new Date(currentYear, 0, 1);
+const startOfNextYear = new Date(currentYear + 1, 0, 1);
 const weekYearStart = new Date(startOfYear);
 const daysSinceMonday = (weekYearStart.getDay() + 6) % 7;
 weekYearStart.setDate(weekYearStart.getDate() - daysSinceMonday);
+
 const totalYearMs = startOfNextYear - startOfYear;
 const elapsedYearMs = now - startOfYear;
 const yearPercent = Math.min(
@@ -160,19 +224,10 @@ function currentDayOfWeekNumber() {
   return Math.min(7, Math.floor(msIntoWeek / DAY_MS) + 1);
 }
 
-// gradient stops the "open" weeks sweep through as they approach today
-const fluxStops = ["#3b5bfd", "#5f4bf5", "#8b5cf6", "#5b7ff0", "#22d3b8"];
 const dateFmt = new Intl.DateTimeFormat(undefined, {
   month: "short",
   day: "numeric",
 });
-
-function lerpColor(hexA, hexB, t) {
-  const a = hexA.match(/\w\w/g).map((x) => parseInt(x, 16));
-  const b = hexB.match(/\w\w/g).map((x) => parseInt(x, 16));
-  const c = a.map((v, i) => Math.round(v + (b[i] - v) * t));
-  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-}
 
 function weekDateRange(i) {
   const start = new Date(weekYearStart);
@@ -185,107 +240,86 @@ function weekDateRange(i) {
 let nowFillEl = null;
 let nowTileEl = null;
 
-for (let row = 0; row < ROWS; row++) {
-  const rowEl = document.createElement("div");
-  rowEl.className = "wall-row";
+if (wall) {
+  wall.innerHTML = "";
+  for (let row = 0; row < ROWS; row++) {
+    const rowEl = document.createElement("div");
+    rowEl.className = "wall-row";
 
-  const label = document.createElement("span");
-  label.className = "q-label";
-  label.textContent = QUARTER_LABELS[row];
-  rowEl.appendChild(label);
+    const label = document.createElement("span");
+    label.className = "q-label";
+    label.textContent = QUARTER_LABELS[row];
+    rowEl.appendChild(label);
 
-  for (let col = 0; col < COLS; col++) {
-    const i = row * COLS + col;
-    const tile = document.createElement("div");
-    tile.className = "tile";
-    const weekNum = i + 1;
-    const range = weekDateRange(i);
+    for (let col = 0; col < COLS; col++) {
+      const i = row * COLS + col;
+      const tile = document.createElement("div");
+      tile.className = "tile";
+      const weekNum = i + 1;
+      const range = weekDateRange(i);
 
-    // diagonal-wave reveal on load
-    tile.style.setProperty("--reveal-delay", `${(row + col) * 0.028}s`);
+      if (i < currentWeekIndex) {
+        tile.classList.add("spent");
+        tile.dataset.tip = `[WK ${weekNum}] ${range} // EXPIRED`;
+      } else if (i === currentWeekIndex) {
+        tile.classList.add("open", "now");
 
-    if (i < currentWeekIndex) {
-      tile.classList.add("spent");
-      tile.dataset.tip = `Week ${weekNum} · ${range} · gone`;
-    } else if (i === currentWeekIndex) {
-      tile.classList.add("open", "now");
-      tile.style.setProperty("--tile-c1", "#ffb37a");
-      tile.style.setProperty("--tile-c2", "#ff8a5c");
-      tile.style.setProperty("--tile-op", "0.95");
+        const fill = document.createElement("div");
+        fill.className = "tile-now-fill";
+        fill.style.height = `${currentWeekFraction() * 100}%`;
+        tile.appendChild(fill);
+        nowFillEl = fill;
+        nowTileEl = tile;
 
-      // day-by-day fill: the passed portion of THIS week goes dark,
-      // same color language as the rest of the wall — the week fills
-      // up in real time instead of just flipping states on Monday
-      const fill = document.createElement("div");
-      fill.className = "tile-now-fill";
-      fill.style.height = `${currentWeekFraction() * 100}%`;
-      tile.appendChild(fill);
-      nowFillEl = fill;
-      nowTileEl = tile;
+        tile.dataset.tip = `[WK ${weekNum} · LIVE] ${range} // DAY ${currentDayOfWeekNumber()}/7`;
+      } else {
+        tile.classList.add("open");
+        tile.dataset.tip = `[WK ${weekNum}] ${range} // UNLOCKED`;
+      }
 
-      tile.dataset.tip = `Week ${weekNum} · ${range} · day ${currentDayOfWeekNumber()} of 7`;
-    } else {
-      tile.classList.add("open");
-      const distance =
-        (i - currentWeekIndex) / (TILE_COUNT - currentWeekIndex || 1);
-      const t = 1 - distance;
-      const c1 = lerpColor(
-        fluxStops[i % fluxStops.length],
-        "#ffffff",
-        t * 0.25,
-      );
-      const c2 = lerpColor(
-        fluxStops[(i + 2) % fluxStops.length],
-        "#22d3b8",
-        0.4 + t * 0.3,
-      );
-      tile.style.setProperty("--tile-c1", c1);
-      tile.style.setProperty("--tile-c2", c2);
-      tile.style.setProperty("--tile-op", String(0.65 + t * 0.3));
-      tile.style.setProperty("--tile-dur", `${5 + Math.random() * 4}s`);
-      tile.style.setProperty("--tile-delay", `${Math.random() * 4}s`);
-      tile.dataset.tip = `Week ${weekNum} · ${range} · still ahead`;
+      tile.addEventListener("mouseenter", () => {
+        if (!tooltip) return;
+        tooltip.textContent = tile.dataset.tip;
+        tooltip.classList.add("visible");
+      });
+      tile.addEventListener("mousemove", (e) => {
+        if (!tooltip) return;
+        tooltip.style.left = `${e.clientX}px`;
+        tooltip.style.top = `${e.clientY - 10}px`;
+      });
+      tile.addEventListener("mouseleave", () => {
+        if (!tooltip) return;
+        tooltip.classList.remove("visible");
+      });
+
+      rowEl.appendChild(tile);
     }
 
-    tile.addEventListener("mouseenter", () => {
-      tooltip.textContent = tile.dataset.tip;
-      tooltip.classList.add("visible");
-    });
-    tile.addEventListener("mousemove", (e) => {
-      tooltip.style.left = `${e.clientX}px`;
-      tooltip.style.top = `${e.clientY - 14}px`;
-    });
-    tile.addEventListener("mouseleave", () => {
-      tooltip.classList.remove("visible");
-    });
-
-    rowEl.appendChild(tile);
+    wall.appendChild(rowEl);
   }
-
-  wall.appendChild(rowEl);
 }
 
-// keep the current week's fill (and its tooltip) accurate as the day rolls on,
-// without needing a page reload
+// Keep active week progress updated in real time
 setInterval(() => {
   if (!nowFillEl || !nowTileEl) return;
   nowFillEl.style.height = `${currentWeekFraction() * 100}%`;
   const weekNum = currentWeekIndex + 1;
-  nowTileEl.dataset.tip = `Week ${weekNum} · ${weekDateRange(currentWeekIndex)} · day ${currentDayOfWeekNumber()} of 7`;
+  nowTileEl.dataset.tip = `[WK ${weekNum} · LIVE] ${weekDateRange(currentWeekIndex)} // DAY ${currentDayOfWeekNumber()}/7`;
 }, 60000);
 
 /*
 |--------------------------------------------------------------------------
-| Count-up animation for the headline numbers
+| Count-Up Metric Animations
 |--------------------------------------------------------------------------
 */
 
-function countUp(el, target, duration = 900, suffix = "") {
+function countUp(el, target, duration = 800) {
+  if (!el) return;
   const start = performance.now();
   function frame(t) {
     const p = Math.min(1, (t - start) / duration);
     const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.round(eased * target) + suffix;
+    el.textContent = String(Math.round(eased * target));
     if (p < 1) requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -294,85 +328,34 @@ function countUp(el, target, duration = 900, suffix = "") {
 countUp(document.getElementById("weeks-gone"), currentWeekIndex);
 countUp(
   document.getElementById("weeks-left"),
-  TILE_COUNT - currentWeekIndex - 1,
-  900,
+  Math.max(0, TILE_COUNT - currentWeekIndex - 1),
+  800,
 );
 
 /*
 |--------------------------------------------------------------------------
-| Progress row — % of the year already gone
+| Progress Section — Industrial Telemetry & ASCII Bar
 |--------------------------------------------------------------------------
 */
 
 const progressFill = document.getElementById("progress-fill");
 const progressMarker = document.getElementById("progress-marker");
 const progressLabel = document.getElementById("progress-label");
+const progressPct = document.getElementById("progress-pct");
+const progressAscii = document.getElementById("progress-ascii");
 
-progressFill.style.width = `${yearPercent}%`;
-progressMarker.style.left = `${yearPercent}%`;
-progressLabel.textContent = `${yearPercent.toFixed(1)}% of ${now.getFullYear()} gone — ${currentWeekIndex} of ${TILE_COUNT} weeks`;
-
-/*
-|--------------------------------------------------------------------------
-| Sparks — small drifting motes, colored from the flux palette
-|--------------------------------------------------------------------------
-*/
-
-const sparkField = document.getElementById("spark-field");
-const MAX_SPARKS = 20;
-const SPARK_COLORS = ["#3b5bfd", "#8b5cf6", "#22d3b8", "#ffb37a"];
-
-function spawnSpark() {
-  if (sparkField.childElementCount >= MAX_SPARKS) return;
-
-  const spark = document.createElement("div");
-  spark.className = "spark";
-
-  const size = 2 + Math.random() * 3;
-  const duration = 8 + Math.random() * 6;
-  const drift = -40 + Math.random() * 80;
-  const left = Math.random() * 100;
-  const color = SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)];
-
-  spark.style.setProperty("--s", `${size}px`);
-  spark.style.setProperty("--dur", `${duration}s`);
-  spark.style.setProperty("--drift", `${drift}px`);
-  spark.style.setProperty("--sc", color);
-  spark.style.left = `${left}%`;
-
-  sparkField.appendChild(spark);
-  setTimeout(() => spark.remove(), duration * 1000 + 200);
+function generateAsciiBar(percent, totalBlocks = 20) {
+  const filledCount = Math.round((percent / 100) * totalBlocks);
+  const filled = "█".repeat(Math.max(0, Math.min(totalBlocks, filledCount)));
+  const empty = "░".repeat(Math.max(0, totalBlocks - filledCount));
+  return `[${filled}${empty}]`;
 }
 
-for (let i = 0; i < 12; i++) {
-  setTimeout(spawnSpark, i * 350);
+if (progressFill) progressFill.style.width = `${yearPercent}%`;
+if (progressMarker) progressMarker.style.left = `${yearPercent}%`;
+if (progressPct) progressPct.textContent = `${yearPercent.toFixed(1)}%`;
+if (progressAscii) progressAscii.textContent = generateAsciiBar(yearPercent, 20);
+if (progressLabel) {
+  progressLabel.textContent = `${yearPercent.toFixed(1)}% ELAPSED`;
 }
-setInterval(spawnSpark, 600);
 
-/*
-|--------------------------------------------------------------------------
-| Cursor glow + Week Wall parallax
-|--------------------------------------------------------------------------
-*/
-
-const cursorGlow = document.getElementById("cursor-glow");
-const prefersReducedMotion = window.matchMedia(
-  "(prefers-reduced-motion: reduce)",
-).matches;
-
-document.addEventListener("mousemove", (e) => {
-  cursorGlow.classList.add("active");
-  cursorGlow.style.left = `${e.clientX}px`;
-  cursorGlow.style.top = `${e.clientY}px`;
-
-  if (!prefersReducedMotion) {
-    const xRatio = e.clientX / window.innerWidth - 0.5;
-    const yRatio = e.clientY / window.innerHeight - 0.5;
-    wall.style.transform = `scale(1.04) translate(${xRatio * -14}px, ${yRatio * -10}px)`;
-  }
-});
-
-document.addEventListener("mouseleave", () => {
-  cursorGlow.classList.remove("active");
-  wall.style.transform = "scale(1.04) translate(0, 0)";
-});

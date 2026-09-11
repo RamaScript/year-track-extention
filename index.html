@@ -1,79 +1,95 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="acid">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>New Tab</title>
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <title>TIME // TRACKER</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Week Wall: each tile = one week of the year. spent = dark, open = glowing -->
+    <!-- Background Structural Grid & Week Wall -->
+    <div id="bg-grid"></div>
     <div id="week-wall"></div>
-    <div id="grid-overlay"></div>
-
-    <div id="spark-field"></div>
-    <div id="cursor-glow"></div>
     <div id="tile-tooltip" class="tile-tooltip"></div>
 
-    <main class="container">
-      <div class="eyebrow"><span>THE YEAR IS RUNNING OUT</span></div>
+    <!-- Top Technical Telemetry Bar -->
+    <header class="tech-bar">
+      <div class="tech-tag brand-tag">
+        <span class="live-dot"></span>
+        <span>SYS.TEMPORAL</span>
+        <span id="current-year-stamp" class="year-pill">2026</span>
+      </div>
+      <div class="tech-tag time-tag" id="system-clock">00:00:00 UTC</div>
+      <div class="tech-actions">
+        <button id="theme-btn" class="brutal-btn" title="Toggle Brutalist Theme">
+          <span id="theme-btn-label">THEME: ACID</span>
+        </button>
+      </div>
+    </header>
 
-      <div class="weeks-stat">
-        <div class="stat gone">
-          <b id="weeks-gone">0</b>
-          <small>Weeks gone</small>
-        </div>
-        <div class="divider"></div>
-        <div class="stat left">
-          <b id="weeks-left">52</b>
-          <small>Weeks left</small>
+    <!-- Main Brutalist Console (Compact & Minimal) -->
+    <main class="container">
+      <!-- Structural Corner Crosshairs -->
+      <span class="crosshair tl">+</span>
+      <span class="crosshair tr">+</span>
+      <span class="crosshair bl">+</span>
+      <span class="crosshair br">+</span>
+
+      <div class="headline-row">
+        <h1 class="headline">
+          Another year ends <span class="headline-in">in</span>
+        </h1>
+        <div class="weeks-stat-pill">
+          <b id="weeks-gone">0</b> SPENT <span class="stat-sep">/</span> <b id="weeks-left">52</b> LEFT
         </div>
       </div>
-
-      <h1 class="headline">
-        Another year ends <span class="grad">in</span>
-      </h1>
 
       <div class="countdown">
-        <div class="card">
-          <span id="years">0</span>
-          <small>Years</small>
+        <div class="card card-y">
+          <span id="years" class="digit">0</span>
+          <small>Y</small>
         </div>
-        <div class="card">
-          <span id="months">0</span>
-          <small>Months</small>
+        <div class="card card-mo">
+          <span id="months" class="digit">0</span>
+          <small>M</small>
         </div>
-        <div class="card">
-          <span id="days">0</span>
-          <small>Days</small>
+        <div class="card card-d">
+          <span id="days" class="digit">0</span>
+          <small>D</small>
         </div>
-        <div class="card">
-          <span id="hours">0</span>
-          <small>Hrs</small>
+        <div class="card card-h">
+          <span id="hours" class="digit">00</span>
+          <small>H</small>
         </div>
-        <div class="card">
-          <span id="minutes">0</span>
-          <small>Min</small>
+        <div class="card card-m">
+          <span id="minutes" class="digit">00</span>
+          <small>M</small>
         </div>
-        <div class="card">
-          <span id="seconds">0</span>
-          <small>Sec</small>
+        <div class="card card-s">
+          <span id="seconds" class="digit">00</span>
+          <small>S</small>
         </div>
-        <div class="card ms-card">
-          <span id="milliseconds">0</span>
-          <small>Ms</small>
+        <div class="card card-ms">
+          <span id="milliseconds" class="digit">000</span>
+          <small>MS</small>
         </div>
       </div>
 
-      <div class="progress-row">
+      <div class="progress-section">
         <div class="progress-track">
           <div class="progress-fill" id="progress-fill"></div>
           <div class="progress-marker" id="progress-marker"></div>
         </div>
-        <div class="progress-label" id="progress-label">— % of the year gone</div>
+        <div class="progress-meta">
+          <span class="progress-ascii" id="progress-ascii">[░░░░░░░░░░░░░░░░░░░░]</span>
+          <span class="progress-label" id="progress-label">0% ELAPSED</span>
+        </div>
+        <span id="progress-pct" style="display:none">0.0%</span>
       </div>
     </main>
+
+
 
     <script src="script.js"></script>
   </body>
